@@ -48,7 +48,9 @@ function createUserRow(user) {
  */
 function renderTable(userArray) {
 
-  userTableBody.innerHTML = "";
+  if (!userTableBody) return;
+
+userTableBody.innerHTML = "";
 
   userArray.forEach(user => {
     const row = createUserRow(user);
@@ -225,7 +227,7 @@ async function handleTableClick(event) {
 /**
  * Implement the handleSearch function.
  */
-function handleSearch(event) {
+function handleSearch() {
 
   const searchTerm = searchInput.value.toLowerCase();
 
@@ -309,30 +311,41 @@ async function loadUsersAndInitialize() {
     alert("Error loading users.");
   }
 
-  // Attach event listeners
+// Attach event listeners safely
+
+if (changePasswordForm) {
   changePasswordForm.addEventListener(
     "submit",
     handleChangePassword
   );
+}
 
+if (addUserForm) {
   addUserForm.addEventListener(
     "submit",
     handleAddUser
   );
+}
 
+if (userTableBody) {
   userTableBody.addEventListener(
     "click",
     handleTableClick
   );
+}
 
+if (searchInput) {
   searchInput.addEventListener(
     "input",
     handleSearch
   );
+}
 
+if (tableHeaders.length > 0) {
   tableHeaders.forEach(header => {
     header.addEventListener("click", handleSort);
   });
+}
 }
 
 // --- Initial Page Load ---
