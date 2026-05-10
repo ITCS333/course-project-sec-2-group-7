@@ -275,6 +275,67 @@ function createUser($db, $data) {
     }
 }
 
+/**
+ * Function: Update an existing user.
+ * Method: PUT
+ */
+function updateUser($db, $data) {
+
+    // TODO: Check that id is present in $data.
+    if (empty($data['id'])) {
+
+        sendResponse("User id is required", 400);
+    }
+
+    // TODO: Look up the user by id.
+    $checkSql = "SELECT id FROM users WHERE id = :id";
+
+    $checkStmt = $db->prepare($checkSql);
+
+    $checkStmt->execute([
+        ':id' => $data['id']
+    ]);
+
+    if (!$checkStmt->fetch()) {
+
+        sendResponse("User not found", 404);
+    }
+
+    // TODO: Validate email if provided.
+    if (!empty($data['email'])) {
+
+        if (!validateEmail($data['email'])) {
+
+            sendResponse("Invalid email format", 400);
+        }
+    }
+
+    // TODO: Build update query.
+    $sql = "UPDATE users
+            SET name = :name,
+                email = :email,
+                is_admin = :is_admin
+            WHERE id = :id";
+
+    $stmt = $db->prepare($sql);
+
+    $success = $stmt->execute([
+        ':name' => sanitizeInput($data['name']),
+        ':email' => trim($data['email']),
+        ':is_admin' => isset($data['is_admin']) && $data['is_admin'] == 1 ? 1 : 0,
+        ':id' => $data['id']
+    ]);
+
+    // TODO: Return response.
+    if ($success) {
+
+        sendResponse("User updated successfully", 200);
+
+    } else {
+
+        sendResponse("Failed to update user", 500);
+    }
+}
 
 /**
  * Function: Delete a user by primary key.
