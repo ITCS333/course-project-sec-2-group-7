@@ -283,14 +283,13 @@ function createUser($db, $data) {
  * Function: Update an existing user.
  * Method: PUT
  */
+
 function updateUser($db, $data) {
 
-    // TODO: Check that id is present in $data.
     if (empty($data['id'])) {
         sendResponse("User id is required", 400);
     }
 
-    // TODO: Look up the user by id.
     $checkSql = "SELECT id FROM users WHERE id = :id";
     $checkStmt = $db->prepare($checkSql);
     $checkStmt->execute([
@@ -301,63 +300,59 @@ function updateUser($db, $data) {
         sendResponse("User not found", 404);
     }
 
-    // TODO: Check required update fields.
-    if (
-        empty($data['name']) ||
-        empty($data['email']) ||
-        !isset($data['is_admin'])
-    ) {
-        sendResponse("Name, email, and admin status are required", 400);
-    }
-
-    // TODO: Sanitize and validate inputs.
-    $name = sanitizeInput($data['name']);
-    $email = trim($data['email']);
-    $isAdmin = $data['is_admin'] == 1 ? 1 : 0;
-
-    if (!validateEmail($email)) {
-        sendResponse("Invalid email format", 400);
-    }
-
-    // TODO: If email is being updated, check it is not already used by another user.
-    $duplicateSql = "SELECT id FROM users
-                     WHERE email = :email
-                     AND id != :id";
-
-    $duplicateStmt = $db->prepare($duplicateSql);
-
-    $duplicateStmt->execute([
-        ':email' => $email,
+    $fields = [];
+    $params = [
         ':id' => $data['id']
-    ]);
+    ];
 
-    if ($duplicateStmt->fetch()) {
-        sendResponse("Email already exists", 409);
+    if (isset($data['name'])) {
+        $fields[] = "name = :name";
+        $params[':name'] = sanitizeInput($data['name']);
     }
 
-    // TODO: Prepare the UPDATE statement, bind parameters, and execute.
-    $sql = "UPDATE users
-            SET name = :name,
-                email = :email,
-                is_admin = :is_admin
-            WHERE id = :id";
+    if (isset($data['email'])) {
+        $email = trim($data['email']);
+
+        if (!validateEmail($email)) {
+            sendResponse("Invalid email format", 400);
+        }
+
+        $duplicateSql = "SELECT id FROM users WHERE email = :email AND id != :id";
+        $duplicateStmt = $db->prepare($duplicateSql);
+        $duplicateStmt->execute([
+            ':email' => $email,
+            ':id' => $data['id']
+        ]);
+
+        if ($duplicateStmt->fetch()) {
+            sendResponse("Email already exists", 409);
+        }
+
+        $fields[] = "email = :email";
+        $params[':email'] = $email;
+    }
+
+    if (isset($data['is_admin'])) {
+        $fields[] = "is_admin = :is_admin";
+        $params[':is_admin'] = $data['is_admin'] == 1 ? 1 : 0;
+    }
+
+    if (empty($fields)) {
+        sendResponse("No fields to update", 400);
+    }
+
+    $sql = "UPDATE users SET " . implode(", ", $fields) . " WHERE id = :id";
 
     $stmt = $db->prepare($sql);
+    $success = $stmt->execute($params);
 
-    $success = $stmt->execute([
-        ':name' => $name,
-        ':email' => $email,
-        ':is_admin' => $isAdmin,
-        ':id' => $data['id']
-    ]);
-
-    // TODO: If successful, call sendResponse() with HTTP 200.
     if ($success) {
         sendResponse("User updated successfully", 200);
     } else {
         sendResponse("Failed to update user", 500);
     }
 }
+
 
 /**
  * Function: Delete a user by primary key.
