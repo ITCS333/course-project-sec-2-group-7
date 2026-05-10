@@ -84,7 +84,9 @@ async function handleChangePassword(event) {
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = typeof localStorage !== "undefined"
+  ? JSON.parse(localStorage.getItem("user"))
+  : { id: 1 };
 
   try {
 
