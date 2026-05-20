@@ -22,7 +22,8 @@ const resourceForm = document.querySelector('#resource-form');
 // TODO: Select the resources table body ('#resources-tbody').
 const resourcesTbody = document.querySelector('#resources-tbody');
 
-// --- Functions ---
+// --- Functions ----
+
 
 /**
  * TODO: Implement the createResourceRow function.

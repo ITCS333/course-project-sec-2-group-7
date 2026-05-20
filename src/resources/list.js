@@ -8,10 +8,10 @@
   2. In `list.html`, add id="resource-list-section" to the
      <section> element that will contain the resource articles.
 
-  3. Implement the TODOs below.
+  3. Implement the TODOs below .
 */
 
-// --- Element Selections ---
+// --- Element Selections ----
 // TODO: Select the section for the resource list ('#resource-list-section').
 const resourceListSection = document.querySelector('#resource-list-section');
 

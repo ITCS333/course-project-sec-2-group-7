@@ -13,7 +13,7 @@
      - To the comment <form>:                 id="comment-form"
      - To the <textarea>:                     id="new-comment"
 
-  3. Implement the TODOs below.
+  3. Implement the TODOs below .
 */
 
 // --- Global Data Store ---
@@ -21,8 +21,8 @@
 let currentResourceId = null;
 let currentComments = [];
 
-// --- Element Selections ---
-// TODO: Select all the elements you added IDs for in step 2.
+// --- Element Selections ----
+// TODO: Select all the elements you added IDs for in step 2 .
 const resourceTitle = document.querySelector('#resource-title');
 const resourceDescription = document.querySelector('#resource-description');
 const resourceLink = document.querySelector('#resource-link');
@@ -33,7 +33,7 @@ const newCommentTextarea = document.querySelector('#new-comment');
 // --- Functions ---
 
 /**
- * TODO: Implement the getResourceIdFromURL function.
+ * TODO: Implement the getResourceIdFromURL function..
  * It should:
  * 1. Get the query string from `window.location.search`.
  * 2. Use the `URLSearchParams` object to get the value of the 'id' parameter.
