@@ -17,8 +17,10 @@ let resources = [];
 
 // --- Element Selections ---
 // TODO: Select the resource form ('#resource-form').
+const resourceForm = document.querySelector('#resource-form');
 
 // TODO: Select the resources table body ('#resources-tbody').
+const resourcesTbody = document.querySelector('#resources-tbody');
 
 // --- Functions ---
 
@@ -34,7 +36,42 @@ let resources = [];
  *    - A "Delete" button with class="delete-btn" and data-id="${id}".
  */
 function createResourceRow(resource) {
-  // ... your implementation here ...
+  // Create the table row
+  const tr = document.createElement('tr');
+
+  // Create and append the title cell
+  const titleTd = document.createElement('td');
+  titleTd.textContent = resource.title;
+  tr.appendChild(titleTd);
+
+  // Create and append the description cell
+  const descriptionTd = document.createElement('td');
+  descriptionTd.textContent = resource.description;
+  tr.appendChild(descriptionTd);
+
+  // Create and append the link cell
+  const linkTd = document.createElement('td');
+  linkTd.textContent = resource.link;
+  tr.appendChild(linkTd);
+
+  // Create and append the actions cell with Edit and Delete buttons
+  const actionsTd = document.createElement('td');
+
+  const editBtn = document.createElement('button');
+  editBtn.textContent = 'Edit';
+  editBtn.className = 'edit-btn';
+  editBtn.dataset.id = resource.id;
+  actionsTd.appendChild(editBtn);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.dataset.id = resource.id;
+  actionsTd.appendChild(deleteBtn);
+
+  tr.appendChild(actionsTd);
+
+  return tr;
 }
 
 /**
@@ -46,7 +83,14 @@ function createResourceRow(resource) {
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  // ... your implementation here ...
+  // Clear the table body
+  resourcesTbody.innerHTML = '';
+
+  // Loop through resources and append each row
+  resources.forEach(resource => {
+    const row = createResourceRow(resource);
+    resourcesTbody.appendChild(row);
+  });
 }
 
 /**
@@ -68,8 +112,33 @@ function renderTable() {
  * 5. Call `renderTable()` to refresh the list.
  * 6. Reset the form.
  */
-function handleAddResource(event) {
-  // ... your implementation here ...
+async function handleAddResource(event) {
+  // Prevent the form from submitting normally
+  event.preventDefault();
+
+  // Get the values from the form fields
+  const title = document.querySelector('#resource-title').value.trim();
+  const description = document.querySelector('#resource-description').value.trim();
+  const link = document.querySelector('#resource-link').value.trim();
+
+  // POST the new resource to the API
+  const response = await fetch('./api/index.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description, link })
+  });
+
+  // Parse the response
+  const result = await response.json();
+
+  // Add the new resource to the global array
+  resources.push({ id: result.id, title, description, link });
+
+  // Refresh the table
+  renderTable();
+
+  // Reset the form
+  resourceForm.reset();
 }
 
 /**
@@ -103,8 +172,80 @@ function handleAddResource(event) {
  * 7. Call `renderTable()` and reset the form back to "Add" mode,
  *    restoring the submit button text to "Add Resource".
  */
-function handleTableClick(event) {
-  // ... your implementation here ...
+async function handleTableClick(event) {
+  const target = event.target;
+
+  // --- Handle Delete ---
+  if (target.classList.contains('delete-btn')) {
+    // Get the resource id from the button's data-id attribute
+    const id = target.dataset.id;
+
+    // DELETE the resource via the API
+    await fetch(`./api/index.php?id=${id}`, {
+      method: 'DELETE'
+    });
+
+    // Remove the resource from the global array
+    resources = resources.filter(resource => resource.id != id);
+
+    // Refresh the table
+    renderTable();
+  }
+
+  // --- Handle Edit ---
+  if (target.classList.contains('edit-btn')) {
+    // Get the resource id from the button's data-id attribute
+    const id = target.dataset.id;
+
+    // Find the matching resource in the global array
+    const resource = resources.find(resource => resource.id == id);
+
+    // Populate the form fields with the resource's current values
+    document.querySelector('#resource-title').value = resource.title;
+    document.querySelector('#resource-description').value = resource.description;
+    document.querySelector('#resource-link').value = resource.link;
+
+    // Change the submit button text to indicate edit mode
+    const submitBtn = document.querySelector('#add-resource');
+    submitBtn.textContent = 'Update Resource';
+
+    // Remove the old submit event listener and add a new one for update
+    const handleUpdateResource = async (event) => {
+      event.preventDefault();
+
+      // Get the updated values from the form fields
+      const title = document.querySelector('#resource-title').value.trim();
+      const description = document.querySelector('#resource-description').value.trim();
+      const link = document.querySelector('#resource-link').value.trim();
+
+      // PUT the updated resource to the API
+      await fetch('./api/index.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, title, description, link })
+      });
+
+      // Update the matching resource in the global array
+      resources = resources.map(resource =>
+        resource.id == id ? { id, title, description, link } : resource
+      );
+
+      // Refresh the table
+      renderTable();
+
+      // Reset the form back to Add mode
+      resourceForm.reset();
+      submitBtn.textContent = 'Add Resource';
+
+      // Remove this update listener and restore the original add listener
+      resourceForm.removeEventListener('submit', handleUpdateResource);
+      resourceForm.addEventListener('submit', handleAddResource);
+    };
+
+    // Switch event listeners from Add mode to Update mode
+    resourceForm.removeEventListener('submit', handleAddResource);
+    resourceForm.addEventListener('submit', handleUpdateResource);
+  }
 }
 
 /**
@@ -122,7 +263,23 @@ function handleTableClick(event) {
  *    calling `handleTableClick`.
  */
 async function loadAndInitialize() {
-  // ... your implementation here ...
+  // Fetch all resources from the API
+  const response = await fetch('./api/index.php');
+
+  // Parse the JSON response
+  const result = await response.json();
+
+  // Store the resources in the global array
+  resources = result.data;
+
+  // Populate the table for the first time
+  renderTable();
+
+  // Add the submit event listener to the form
+  resourceForm.addEventListener('submit', handleAddResource);
+
+  // Add the click event listener to the table body
+  resourcesTbody.addEventListener('click', handleTableClick);
 }
 
 // --- Initial Page Load ---
