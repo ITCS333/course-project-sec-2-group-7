@@ -25,7 +25,6 @@ const resourceListSection = document.querySelector('#resource-list-section');
  * `details.html?id=${id}` so the detail page knows which resource to load.
  */
 function createResourceArticle(resource) {
-
   // Create the article element
   const article = document.createElement('article');
 
@@ -61,7 +60,6 @@ function createResourceArticle(resource) {
  *    - Append the returned <article> element to the list section.
  */
 async function loadResources() {
-  // ... your implementation here ...
   // Fetch all resources from the API
   const response = await fetch('./api/index.php');
 

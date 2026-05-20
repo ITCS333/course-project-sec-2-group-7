@@ -129,7 +129,6 @@ function renderComments() {
  *        author: 'Student',
  *        text: commentText
  *      })
- *      ('Student' is an acceptable hardcoded author for this exercise.)
  * 5. On success, add the new comment object returned by the API to the
  *    global `currentComments` array.
  * 6. Call `renderComments()` to refresh the comment list.
@@ -160,7 +159,9 @@ async function handleAddComment(event) {
   const result = await response.json();
 
   // Add the new comment to the global array
-  currentComments.push(result.data);
+  if (result.data) {
+    currentComments.push(result.data);
+  }
 
   // Refresh the comment list
   renderComments();
@@ -179,16 +180,12 @@ async function handleAddComment(event) {
  * 3. Fetch the resource details and its comments at the same time
  *    using Promise.all():
  *    - Resource URL:  `./api/index.php?id=${currentResourceId}`
- *      Response:      { success: true, data: { id, title, description, link, created_at } }
  *    - Comments URL:  `./api/index.php?resource_id=${currentResourceId}&action=comments`
- *      Response:      { success: true, data: [ ...comment objects ] }
  * 4. Store the comments array in the global `currentComments` variable.
- *    (If no comments exist, use an empty array.)
  * 5. If the resource is found:
  *    - Call `renderResourceDetails()` with the resource object.
  *    - Call `renderComments()` to display the initial comments.
- *    - Add the 'submit' event listener to the comment form
- *      (id="comment-form"), calling `handleAddComment`.
+ *    - Add the 'submit' event listener to the comment form.
  * 6. If the resource is not found, display an error in the title element.
  */
 async function initializePage() {
