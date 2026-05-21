@@ -102,8 +102,9 @@ function renderAssignmentDetails(assignment) {
   // Clear the files list
   assignmentFilesList.innerHTML = '';
 
-  // Loop through each file URL and create a list item
-  assignment.files.forEach(url => {
+  // Guard against undefined or missing files
+  const files = assignment.files || [];
+  files.forEach(url => {
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.href = url;
@@ -209,7 +210,7 @@ async function handleAddComment(event) {
   const result = await response.json();
 
   // On success, update the comments array and re-render
-  if (result.success) {
+  if (result.success === true) {
     currentComments.push(result.data);
     renderComments();
     newCommentInput.value = '';
@@ -264,9 +265,10 @@ async function initializePage() {
   // Store the comments in the global array
   currentComments = commentsResult.data || [];
 
-  // If assignment is found, render it
-  if (assignmentResult.success && assignmentResult.data) {
-    renderAssignmentDetails(assignmentResult.data);
+  // Guard: data must be a non-null object and not an array
+  const assignment = assignmentResult.data;
+  if (assignmentResult.success && assignment && !Array.isArray(assignment)) {
+    renderAssignmentDetails(assignment);
     renderComments();
     commentForm.addEventListener('submit', handleAddComment);
   } else {
